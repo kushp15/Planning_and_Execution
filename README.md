@@ -1,1 +1,1 @@
-# FirstSmartGame
+# FirstSmartGame by Pavitra Patel, Kush Patel, & Huzaif Manusri
