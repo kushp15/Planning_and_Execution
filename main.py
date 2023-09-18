@@ -1,4 +1,5 @@
 import random
+from collections import deque
 
 # Bock - #
 # Open - O
@@ -6,7 +7,8 @@ import random
 # Button - B
 # Fire - F
 
-D = 4
+D = 10
+q = 0.2
 grid = [["#" for _ in range(D)] for _ in range(D)]
 openBlockPosArr = []
 deadEndCells = []
@@ -98,6 +100,12 @@ for x in range(D):
                 randIntX, randIntY = deadEndBlockArr[randIndex]
                 grid[randIntX][randIntY] = "O"
 
+####################################################
+'''
+    INITIALIZE BOT, BUTTON, AND FIRE POSITION
+'''
+####################################################
+
 # Appending Open Cell to OpenGrid List
 for x in range(D):
     for y in range(D):
@@ -105,13 +113,19 @@ for x in range(D):
             openGrid.append((x, y))
 
 
-# Find the Position for The Fire Cell
-def fire_open_Startposition():
+# Find the Position for the Bot Cell
+def bot_open_start_position():
     position = random.randint(0, len(openGrid) - 1)
     a, b = openGrid[position]
     openGrid.pop(position)
+    grid[a][b] = "P"
     # print(a, b, position, grid[a][b], len(queue))
     return a, b
+
+
+# Initialize Bot
+x_bot, y_bot = bot_open_start_position()
+bot_pos = (x_bot, y_bot)
 
 
 # Find the Position for The Button Cell
@@ -119,70 +133,185 @@ def button_open_position():
     position = random.randint(0, len(openGrid) - 1)
     a, b = openGrid[position]
     openGrid.pop(position)
+    grid[a][b] = "B"
     # print(a, b, position, grid[a][b], len(queue))
     return a, b
 
 
-# Find the Position for the Bot Cell
-def bot_open_Startposition():
+# Initialize Button
+x_button, y_button = button_open_position()
+button_pos = (x_button, y_button)
+
+
+# Find the Position for The Fire Cell
+def fire_open_start_position():
     position = random.randint(0, len(openGrid) - 1)
     a, b = openGrid[position]
     openGrid.pop(position)
+    grid[a][b] = "F"
     # print(a, b, position, grid[a][b], len(queue))
     return a, b
 
 
-def find_side_neighbour(x, y, factor):
+# Initialize Fire
+x_fire, y_fire = fire_open_start_position()
+fire_pos = (x_fire, y_fire)
 
-    if factor == 1:
-        Direction_to_check = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-        direction = []
-        for a, b in Direction_to_check:
-            new_x, new_y = a + x, b + y
-            if (D > new_x > -1) and (-1 < new_y < D) and (
-                    grid[new_x][new_y] == "O" or grid[new_x][new_y] == "P" or grid[new_x][new_y] == "B"):
-                direction.append((new_x, new_y))
-        print('dire==', direction)
-    elif factor == 2:
-        Direction_to_check = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-        direction = []
-        for a, b in Direction_to_check:
-            new_x, new_y = a + x, b + y
-            if (D > new_x > -1) and (-1 < new_y < D) and (grid[new_x][new_y] == "O" or grid[new_x][new_y] == "B"):
-                direction.append((new_x, new_y))
-        print('dire==', direction)
-
-    return direction
+###############################################################
+'''
+                        FIRE
+'''
+###############################################################
 
 
-def fire(x, y):
-    firePath = []
-    firePath.extend(find_side_neighbour(x, y, 1))
-    q = random.randint(0, len(firePath) - 1)
-    #print(firePath[q])
-    a,b = firePath[q]
-    return a,b
+def find_side_neighbors_for_fire(x, y):
+    neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+    return [(nx, ny) for nx, ny in neighbors if 0 <= nx < D and 0 <= ny < D and grid[nx][ny] == "O"]
 
-def bot_1(x, y):
-    bothPath = []
-    bothPath.extend(find_side_neighbour(x, y, 2))
-    q = random.randint(0, len(bothPath) - 1)
-    #print(firePath[q])
-    a,b = bothPath[q]
-    return a,b
 
-x_bot, y_bot = bot_open_Startposition()
-x_button, y_button = button_open_position()
-x_fire, y_fire = button_open_position()
+def find_fire_neighbors(x, y):
+    neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+    count = [(nx, ny) for nx, ny in neighbors if 0 <= nx < D and 0 <= ny < D and grid[nx][ny] == "F"]
+    return len(count)
 
-grid[x_bot][y_bot] = "P"
-grid[x_button][y_button] = "B"
-grid[x_fire][y_fire] = "F"
 
-print(fire(x_fire, y_fire))
+def fire(OriginalGrid):
+    # create new grid
+    temp_grid = [row.copy() for row in OriginalGrid]
+    flammability = []
+    valid_fire_neighbors = []
+    fire_cell = [(x, y) for x in range(D) for y in range(D) if OriginalGrid[x][y] == "F"]
+    for x, y in fire_cell:
+        # check if the directions are Valid or not with size constraint
+        valid_fire_neighbors.extend(find_side_neighbors_for_fire(x, y))
+    # print(valid_fire_neighbors)
+    valid_fire_neighbors = list(set(valid_fire_neighbors))
+    # print(valid_fire_neighbors)
 
-print(bot_1(x_bot, y_bot))
+    # Get the probability for each neighbor
+    if valid_fire_neighbors:
+        for x, y in valid_fire_neighbors:
+            count = find_fire_neighbors(x, y)
+            if count:
+                # print(count)
+                flammability.append(1 - pow(1 - q, count))
+                total = sum(flammability)
+                probability = [value / total for value in flammability]
 
+        # print('valid==', valid_fire_neighbors)
+        # print('flame==', flammability)
+        # print('proba==', probability)
+    return temp_grid
+
+
+###############################################################
+'''
+                        BOT - 1 
+'''
+###############################################################
+
+
+def get_neighbors(x, y):
+    neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+    return [(nx, ny) for nx, ny in neighbors if 0 <= nx < D and 0 <= ny < D]
+
+
+def is_valid_move(grid, x, y):
+    return 0 <= x < D and 0 <= y < D and grid[x][y] != "#"
+
+
+def find_shortest_path(original_grid, start, end):
+    queue = deque([(start, [])])
+
+    visited = set()
+
+    while queue:
+        (x, y), path = queue.popleft()
+        if (x, y) == end:
+            return path
+        if (x, y) not in visited:
+            visited.add((x, y))
+            # print(visited)
+            for nx, ny in get_neighbors(x, y):
+                if is_valid_move(original_grid, nx, ny):
+                    queue.append(((nx, ny), path + [(nx, ny)]))
+    return None
+
+
+def task_bot_1():
+    time = 0
+    bot_pos = (x_bot, y_bot)
+    button_pos = (x_button, y_button)
+
+    bot_1_grid = [row.copy() for row in grid]
+
+    path = find_shortest_path(grid, bot_pos, button_pos)
+    print("path==", path)
+    while True:
+
+        if bot_pos == button_pos:
+            print("Bot 1 reached to button. Bot-1 Win!")
+            break
+
+        if path:
+            path.pop(0)
+            bot_next_pos = path[0]
+            bot_1_grid[bot_pos[0]][bot_pos[1]] = "P"
+            bot_pos = bot_next_pos
+            bot_1_grid[bot_pos[0]][bot_pos[1]] = "P"
+        else:
+            print("No Path Found")
+
+        fire_grid = fire(bot_1_grid)
+
+        if fire_grid is None:
+            print("Fire Got Bot -1.. You Lost! ")
+            break
+
+        time += 1
+
+    for x in fire_grid:
+        print(' '.join(x))
+    print()
+
+
+# def task_bot_2():
+#     time = 0
+#     bot_pos = (x_bot, y_bot)
+#     button_pos = (x_button, y_button)
+#
+#     bot_2_grid = [row.copy() for row in grid]
+#
+#     while True:
+#
+#         if bot_pos == button_pos:
+#             print("Bot 2 reached to button. Bot-2 Win!")
+#             break
+#         path = find_shortest_path(grid, bot_pos, button_pos)
+#         if path:
+#             path.pop(0)
+#             bot_next_pos = path[0]
+#             bot_2_grid[bot_pos[0]][bot_pos[1]] = "O"
+#             bot_pos = bot_next_pos
+#             bot_2_grid[bot_pos[0]][bot_pos[1]] = "P"
+#         else:
+#             print("No Path Found")
+#
+#         fire_grid = fire(bot_2_grid)
+#
+#         if fire_grid is None:
+#             print("Fire Got Bot - 2.. You Lost! ")
+#             break
+#
+#         time += 1
+#
+#     for x in fire_grid:
+#         print(' '.join(x))
+#     print()
+
+
+task_bot_1()
+# task_bot_2()
 for x in grid:
     print(' '.join(x))
 print()
