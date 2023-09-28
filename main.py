@@ -157,58 +157,18 @@ def fire_open_start_position():
 x_fire, y_fire = fire_open_start_position()
 fire_pos = (x_fire, y_fire)
 
+
 ###############################################################
 '''
-                        FIRE
+                        Helper Methods
 '''
 ###############################################################
 
 
-def find_side_neighbors_for_fire(x, y):
-    neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-    return [(nx, ny) for nx, ny in neighbors if 0 <= nx < D and 0 <= ny < D and grid[nx][ny] == "O"]
-
-
-def find_fire_neighbors(x, y):
+def find_fire_neighbors(grid, x, y):
     neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
     count = [(nx, ny) for nx, ny in neighbors if 0 <= nx < D and 0 <= ny < D and grid[nx][ny] == "F"]
     return len(count)
-
-
-def fire(OriginalGrid):
-    # create new grid
-    temp_grid = [row.copy() for row in OriginalGrid]
-    flammability = []
-    valid_fire_neighbors = []
-    fire_cell = [(x, y) for x in range(D) for y in range(D) if OriginalGrid[x][y] == "F"]
-    for x, y in fire_cell:
-        # check if the directions are Valid or not with size constraint
-        valid_fire_neighbors.extend(find_side_neighbors_for_fire(x, y))
-    # print(valid_fire_neighbors)
-    valid_fire_neighbors = list(set(valid_fire_neighbors))
-    # print(valid_fire_neighbors)
-
-    # Get the probability for each neighbor
-    if valid_fire_neighbors:
-        for x, y in valid_fire_neighbors:
-            count = find_fire_neighbors(x, y)
-            if count:
-                # print(count)
-                flammability.append(1 - pow(1 - q, count))
-                total = sum(flammability)
-                probability = [value / total for value in flammability]
-
-        # print('valid==', valid_fire_neighbors)
-        # print('flame==', flammability)
-        # print('proba==', probability)
-    return temp_grid
-
-
-###############################################################
-'''
-                        BOT - 1 
-'''
-###############################################################
 
 
 def get_neighbors(x, y):
@@ -217,14 +177,111 @@ def get_neighbors(x, y):
 
 
 def is_valid_move(grid, x, y):
-    return 0 <= x < D and 0 <= y < D and grid[x][y] != "#"
+    return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and grid[x][y] != "F"
 
 
-def find_shortest_path(original_grid, start, end):
+def is_valid_move_bot(grid, index, pathF, x, y):
+    if index == 1:
+        return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and grid[x][y] != grid[x_fire][y_fire]
+    if index == 2:
+        for i, j in pathF:
+            return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and grid[x][y] != grid[i][j]
+
+
+def is_valid_move_bot_2(grid, x, y):
+    pass
+
+
+def calculate_fire_spread_probability(q, K):
+    return 1 - (1 - q) ** K
+
+
+###############################################################
+'''
+                        FIRE
+'''
+###############################################################
+
+path_for_fire = {}
+
+
+def fire(OriginalGrid, index):
+    temp_grid = [row.copy() for row in OriginalGrid]
+
+    neighbor_coordinates = []
+    valid_neighbor = []
+    flamability = []
+
+    # Get the Fire Cells on Grid
+    fire_cell = [(x, y) for x in range(D) for y in range(D) if OriginalGrid[x][y] == "F"]
+
+    # path.append((fire_cell,index))
+    # print("pp==",path)
+
+    # Get the Fire Neighbors
+    for x, y in fire_cell:
+        neighbor_coordinates.extend(get_neighbors(x, y))
+
+    # Check they are valid and if the position is itself bot then return None
+    for x, y in neighbor_coordinates:
+        if is_valid_move(OriginalGrid, x, y):
+            valid_neighbor.append((x, y))
+            if (x, y) == (x_bot, y_bot):
+                return None
+
+    # Remove repeated Cells
+    valid_neighbor = list(set(valid_neighbor))
+
+    # iterate in neighbor and get the fire neighbor to see the count of burning neighbor cell
+    for x, y in valid_neighbor:
+        count = find_fire_neighbors(OriginalGrid, x, y)
+        probability = calculate_fire_spread_probability(q, count)
+        # flamability.append( ( (x,y),calculate_fire_spread_probability(q,count) ) )
+        ran = random.random()
+        # print((x, y), ran, probability)
+        if ran < probability:
+            if OriginalGrid[x][y] != "B":  # OriginalGrid[x][y] != "P" or
+                temp_grid[x][y] = "F"
+                if index not in path_for_fire:
+                    path_for_fire[index] = []
+                path_for_fire[index].append((x, y))
+                # path_for_fire.append(((x, y), index))
+                # print("pp==", path_for_fire)
+            else:
+                return None
+
+    # for x in temp_grid:
+    #     print(' '.join(x))
+    # print()
+    return temp_grid
+
+
+# Spread Fire and Store the path Value:
+def start_fire():
+    time = 0
+    tempGrid = [row.copy() for row in grid]
+    while True:
+        tempGrid = fire(tempGrid, time)
+        if tempGrid is None:
+            break
+        time += 1
+
+
+# Ignition to Fire
+start_fire()
+
+###############################################################
+'''
+                        BOT - 1 
+'''
+
+
+###############################################################
+
+
+def find_shortest_path(original_grid, index, fireP, start, end):
     queue = deque([(start, [])])
-
     visited = set()
-
     while queue:
         (x, y), path = queue.popleft()
         if (x, y) == end:
@@ -233,85 +290,98 @@ def find_shortest_path(original_grid, start, end):
             visited.add((x, y))
             # print(visited)
             for nx, ny in get_neighbors(x, y):
-                if is_valid_move(original_grid, nx, ny):
+                if is_valid_move_bot(original_grid, index, fireP, nx, ny):
                     queue.append(((nx, ny), path + [(nx, ny)]))
     return None
 
 
-def task_bot_1():
+def task():
     time = 0
-    bot_pos = (x_bot, y_bot)
     button_pos = (x_button, y_button)
-
+    bot_pos = (x_bot, y_bot)
+    print("bot pos", bot_pos)
     bot_1_grid = [row.copy() for row in grid]
+    bot_2_grid = [row.copy() for row in grid]
 
-    path = find_shortest_path(grid, bot_pos, button_pos)
-    print("path==", path)
+    FirePath = list(path_for_fire.values())
+
+    # path = find_shortest_path(bot_1_grid,1, bot_pos, button_pos)
+
+    result = list(path_for_fire.values())
+    for i, group in enumerate(result):
+        print(f"Group {i}: {group}")
+    # print("p",path)
+
+    # # For Bot 1
+    # while True:
+    #     print(len(FirePath))
+    #     if (x_button,y_button) == path[0]:
+    #         print("Bot reached Button. Bot 1 Won")
+    #         break
+    #     if len(FirePath) == 0:
+    #         print("Fire reached to Button. Bot 1 Loss")
+    #         break
+    #     if path == []:
+    #         print("No path exist for bot 1")
+    #         break
+    #     if path[0] in FirePath[0]:
+    #         print("Fire Caught Bot 1 ")
+    #         break
+    #     print(time)
+    #     print(FirePath.pop(0))
+    #     print("pp==", path.pop(0))
+    #     time += 1
+
+    # For Bot 2
+
+    # print("p",path)
+    time = 0
+    FirePath = list(path_for_fire.values())
+
     while True:
+        # print(len(FirePath))
 
-        if bot_pos == button_pos:
-            print("Bot 1 reached to button. Bot-1 Win!")
+        for x in bot_2_grid:
+            print(' '.join(x))
+        print()
+
+        f2 = FirePath.pop(0)
+        next_fire_cell = f2
+        for i, j in next_fire_cell:
+            bot_2_grid[i][j] = "F"
+
+        path2 = find_shortest_path(bot_2_grid, 2, next_fire_cell, bot_pos, button_pos)
+
+        p2 = path2.pop(0)
+
+        if (x_button, y_button) == p2:
+            print("Bot reached Button. Bot 1 Won")
             break
 
-        if path:
-            path.pop(0)
-            bot_next_pos = path[0]
-            bot_1_grid[bot_pos[0]][bot_pos[1]] = "P"
-            bot_pos = bot_next_pos
-            bot_1_grid[bot_pos[0]][bot_pos[1]] = "P"
-        else:
-            print("No Path Found")
+        print("p2", path2)
+        bot_pos = p2
+        t, k = bot_pos
+        bot_2_grid[t][k] = "P"
+        print("pos", bot_pos)
 
-        fire_grid = fire(bot_1_grid)
-
-        if fire_grid is None:
-            print("Fire Got Bot -1.. You Lost! ")
+        if len(FirePath) == 0:
+            print("Fire reached to Button. Bot 1 Loss")
             break
+        if path2 == []:
+            print("No path exist for bot 1")
+            break
+        if p2 in f2:
+            print("Fire Caught Bot 1 ")
+            break
+        print(time)
 
+        # print(FirePath.pop(0))
+        # print("pp==", path2.pop(0))
         time += 1
 
-    for x in fire_grid:
-        print(' '.join(x))
-    print()
 
+task()
 
-# def task_bot_2():
-#     time = 0
-#     bot_pos = (x_bot, y_bot)
-#     button_pos = (x_button, y_button)
-#
-#     bot_2_grid = [row.copy() for row in grid]
-#
-#     while True:
-#
-#         if bot_pos == button_pos:
-#             print("Bot 2 reached to button. Bot-2 Win!")
-#             break
-#         path = find_shortest_path(grid, bot_pos, button_pos)
-#         if path:
-#             path.pop(0)
-#             bot_next_pos = path[0]
-#             bot_2_grid[bot_pos[0]][bot_pos[1]] = "O"
-#             bot_pos = bot_next_pos
-#             bot_2_grid[bot_pos[0]][bot_pos[1]] = "P"
-#         else:
-#             print("No Path Found")
-#
-#         fire_grid = fire(bot_2_grid)
-#
-#         if fire_grid is None:
-#             print("Fire Got Bot - 2.. You Lost! ")
-#             break
-#
-#         time += 1
-#
-#     for x in fire_grid:
-#         print(' '.join(x))
-#     print()
-
-
-task_bot_1()
-# task_bot_2()
 for x in grid:
     print(' '.join(x))
 print()
