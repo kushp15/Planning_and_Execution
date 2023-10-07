@@ -192,7 +192,7 @@ def get_neighbors(x, y):
 def is_valid_move(grid, x, y):
     return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and grid[x][y] != "F"
 
-
+git 
 def is_valid_move_bot(grid, index, pathF, neighborFP, x, y):
     # if index == 1 then for Bot 1
     if index == 1:
@@ -277,6 +277,64 @@ def fire(OriginalGrid, index):
     #     print(' '.join(x))
     # print()
     return temp_grid
+
+def is_outer_fire(grid, x, y):
+    neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+    for nx, ny in neighbors:
+        if 0 <= nx < D and 0 <= ny < D and grid[nx][ny] == "O":
+            return True
+    return False
+    
+def outer_fire_cells(originalGrid):
+    outer_fire_cells = []
+    
+    # Step 1: Get all the fire cells of the originalGrid
+    fire_cells = [(i, j) for i in range(D) for j in range(D) if originalGrid[i][j] == "F"]
+
+    for x,y in fire_cells:
+        if is_outer_fire(originalGrid, x, y):
+            outer_fire_cells.append((x, y))
+    return outer_fire_cells
+
+#Function to get probability of fire for each cell
+def prob_for_cell(originalGrid):
+
+    temp_grid = [row.copy() for row in originalGrid]
+    
+    # Step 1: Get all the fire cells of the originalGrid
+    fire_cells = [(i, j) for i in range(D) for j in range(D) if temp_grid[i][j] == "F"]
+
+    # Step 2: Initialize 2D array prob_for_cell with each element equal to 0
+    prob_for_cell = [[0 for j in range(D)] for i in range(D)]
+
+    # Step 3: Set prob[fire_cell] = 1 for each fire_cells
+    for i, j in fire_cells:
+        prob_for_cell[i][j] = 1
+
+    # Step 4: while fire_cells is Not Empty
+    while fire_cells:
+        current_fire_cell = fire_cells.pop()
+
+        # Step 4a: mul_factor = prob[fire_cell]
+        mul_factor = prob_for_cell[current_fire_cell[0]][current_fire_cell[1]]
+
+        # Step 4b: Find valid neighbors of fire_cell using get_neighbors and is_valid_move
+        neighbors = get_neighbors(current_fire_cell[0], current_fire_cell[1])
+
+        # Step 4c: For each neighbor in neighbors
+        for neighbor in neighbors:
+            if(is_valid_move(temp_grid, neighbor[0], neighbor[1])):
+                x, y = neighbor
+                # Step 4ci: update prob_for_cell[neighbor] += mul_factor * calculate_fire_spread_probability(q, fire_neighbors)
+                prob_for_cell[x][y] += mul_factor * calculate_fire_spread_probability(q, find_fire_neighbors(temp_grid, x, y))
+
+                # Step 4cii: Add neighbor in fire_cells
+                if neighbor not in fire_cells:
+                    fire_cells.append(neighbor)
+                    temp_grid[x][y] = "F"
+
+    # Step 5: return prob_for_cell
+    return prob_for_cell
 
 
 # Spread Fire and Store the path Value:
