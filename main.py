@@ -1,3 +1,4 @@
+import math
 import random
 from collections import deque
 
@@ -7,8 +8,8 @@ from collections import deque
 # Button - B
 # Fire - F
 
-D = 5
-q = 0.9
+D = 20
+q = 0.6
 grid = [["#" for _ in range(D)] for _ in range(D)]
 openBlockPosArr = []
 deadEndCells = []
@@ -97,17 +98,15 @@ for x in range(D):
             if deadEndBlock >= 3:
                 randIndex = random.randint(0, len(deadEndBlockArr) - 1)
                 randIntX, randIntY = deadEndBlockArr[randIndex]
-                deadEndCells.append((randIntX,randIntY))   # for each dead end pick a coordinate to open at random and store in list
-
+                deadEndCells.append(
+                    (randIntX, randIntY))  # for each dead end pick a coordinate to open at random and store in list
 
 # shuffle the list and open 50% of the dead end cells
-random.shuffle(deadEndCells) #[(8, 4), (9, 5), (3, 7)]
+random.shuffle(deadEndCells)  # [(8, 4), (9, 5), (3, 7)]
 print("deadendsCells", deadEndCells)
-for i in range(int(len(deadEndCells)/2)):
-    x,y = deadEndCells[i]
+for i in range(int(len(deadEndCells) / 2)):
+    x, y = deadEndCells[i]
     grid[x][y] = "O"
-
-
 
 ####################################################
 '''
@@ -169,6 +168,26 @@ def button_open_position():
 x_button, y_button = button_open_position()
 button_pos = (x_button, y_button)
 
+# grid = [
+#     ["O", "O", "#", "O", "P", "O", "#", "#", "O", "O"],
+#     ["#", "O", "O", "#", "#", "O", "O", "#", "O", "O"],
+#     ["O", "O", "O", "#", "#", "O", "#", "O", "O", "O"],
+#     ["#", "O", "O", "#", "O", "O", "O", "O", "O", "O"],
+#     ["O", "O", "F", "O", "#", "O", "#", "#", "O", "O"],
+#     ["#", "O", "O", "O", "O", "O", "O", "#", "O", "O"],
+#     ["#", "O", "#", "O", "#", "O", "#", "O", "O", "O"],
+#     ["O", "O", "#", "#", "O", "O", "O", "O", "O", "#"],
+#     ["#", "#", "O", "#", "#", "B", "#", "O", "O", "#"],
+#     ["O", "O", "O", "O", "O", "O", "O", "#", "O", "O"]
+# ]
+#
+# bot_pos = (0,4)
+# x_bot, y_bot = bot_pos
+# button_pos = (8,5)
+# x_button, y_button = button_pos
+# fire_pos = (4,2)
+# x_fire, y_fire = fire_pos
+
 ###############################################################
 '''
                         Helper Methods
@@ -188,27 +207,31 @@ def get_neighbors(x, y):
     neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
     return [(nx, ny) for nx, ny in neighbors if 0 <= nx < D and 0 <= ny < D]
 
+def get_neighbors_bot4(grid, x, y):
+    neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+    return [(nx, ny) for nx, ny in neighbors if 0 <= nx < D and 0 <= ny < D and grid[nx][ny] != "#"]
 
 def is_valid_move(grid, x, y):
     return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and grid[x][y] != "F"
 
-git 
+
 def is_valid_move_bot(grid, index, pathF, neighborFP, x, y):
     # if index == 1 then for Bot 1
     if index == 1:
         return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and grid[x][y] != grid[x_fire][y_fire]
     # if index == 2 then for Bot 2
     if index == 2:
-        return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and not((x,y) in pathF)
+        return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and not ((x, y) in pathF)
     # if index == 2 then for Bot 3
     if index == 3:
-        return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and not((x,y) in pathF) and not((x,y) in neighborFP)
+        return 0 <= x < D and 0 <= y < D and grid[x][y] != "#" and not ((x, y) in pathF) and not ((x, y) in neighborFP)
 
 
 def calculate_fire_spread_probability(q, K):
-    return 1- (1 - q) ** K
+    return 1 - (1 - q) ** K
 
 
+# 1 - (1-0.2) ** 2 = 1 - (0.8)^2 = 0.36
 ###############################################################
 '''
                         FIRE
@@ -256,12 +279,12 @@ def fire(OriginalGrid, index):
         count = find_fire_neighbors(OriginalGrid, x, y)
         probability = calculate_fire_spread_probability(q, count)
         # print(probability)
-        # if index not in probility_for_bot4:
-        #     probility_for_bot4[index] = []
-        # probility_for_bot4[index].append(probability)
+        if index not in probility_for_bot4:
+            probility_for_bot4[index] = []
+        probility_for_bot4[index].append(((x,y), probability))
         # flamability.append( ( (x,y),calculate_fire_spread_probability(q,count) ) )
         ran = random.random()
-        print((x, y), ran, probability)
+        # print((x, y), ran, probability)
         if ran < probability:
             if OriginalGrid[x][y] != "B":  # OriginalGrid[x][y] != "P" or
                 temp_grid[x][y] = "F"
@@ -278,16 +301,18 @@ def fire(OriginalGrid, index):
     # print()
     return temp_grid
 
+# Helper Method
 def is_outer_fire(grid, x, y):
     neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
     for nx, ny in neighbors:
         if 0 <= nx < D and 0 <= ny < D and grid[nx][ny] == "O":
             return True
     return False
-    
+
+# Method for Outer Fire
 def outer_fire_cells(originalGrid):
     outer_fire_cells = []
-    
+
     # Step 1: Get all the fire cells of the originalGrid
     fire_cells = [(i, j) for i in range(D) for j in range(D) if originalGrid[i][j] == "F"]
 
@@ -296,11 +321,166 @@ def outer_fire_cells(originalGrid):
             outer_fire_cells.append((x, y))
     return outer_fire_cells
 
-#Function to get probability of fire for each cell
-def prob_for_cell(originalGrid):
+# Spread Fire and Store the path Value:
+def start_fire():
+    time = 1
+    tempGrid = [row.copy() for row in grid]
+    while True:
+        tempGrid = fire(tempGrid, time)
+        if tempGrid is None:
+            break
+        time += 1
+
+
+# Ignition to Fire
+start_fire()
+print("Fire Cells")
+result = list(path_for_fire.values())
+for i, group in enumerate(result):
+    print(f"Time {i}: {group}")
+print()
+print("Fire neighbor Cells")
+print()
+result = list(neighbors_for_fire.values())
+for i, group in enumerate(result):
+    print(f"Time {i}: {group}")
+print()
+print("Fire neighbior Cells probilities")
+result = list(probility_for_bot4.values())
+for i, group in enumerate(result):
+    print(f"Time {i}: {group}")
+
+
+def estimate_probability(originalgrid, bot_pos, probability_of_neighbor):
+    Manhattan_dis_list = []
+
+    x,y = bot_pos
+    current_neighbor_cells_of_bot_4 = get_neighbors_bot4(originalgrid,x,y)
+
+    print(current_neighbor_cells_of_bot_4)
+    current_neighbor_cells_of_fire = [xy for xy, value in probability_of_neighbor]
+    probabilityList = [value for xy, value in probability_of_neighbor]
+
+    #current_neighbor_cells_of_fire , probabilityList = probability_of_neighbor
+
+    # print(current_neighbor_cells_of_bot_4, current_neighbor_cells_of_fire, probability_of_neighbor)
+    # print(probability_of_neighbor)
+    if len(current_neighbor_cells_of_bot_4) != 0:
+        for i,j in current_neighbor_cells_of_bot_4:
+            distance = 0
+            for index, (x,y) in enumerate(current_neighbor_cells_of_fire):
+                probability = probabilityList[index]
+                manhattanDist = (abs(x - i) + abs(y - j))
+                if manhattanDist != 0:
+                    distance += probability / manhattanDist
+                else: distance = 0
+            Manhattan_dis_list.append(distance)
+    else:
+        return []
+
+    print("manhattan",Manhattan_dis_list)
+    return Manhattan_dis_list
+
+
+#print(estimate_probability([(0, 0), (0, 1)], [(7, 9), (7, 8), (7, 7)], [0.6, 0.6]))
+# output should be ()
+###############################################################
+'''
+                        BOT - 1 
+'''
+###############################################################
+
+
+def find_shortest_path(original_grid, index, fireP, neighborP, start, end):
+    queue = deque([(start, [])])
+    visited = set()
+    visited_dfs = set()
+    while queue:
+        (x, y), path = queue.popleft()
+        if (x, y) == end:
+            return path
+        if (x, y) not in visited:
+            visited.add((x, y))
+            visited_dfs.add((x, y))
+            # print(visited)
+            for nx, ny in get_neighbors(x, y):
+                if is_valid_move_bot(original_grid, index, fireP, neighborP, nx, ny):
+                    queue.append(((nx, ny), path + [(nx, ny)]))
+            visited_dfs.remove((x, y))
+    return None
+
+def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire):
+    # list of prob
+    # prob = [0.5, 0.8, 0.6, 0.8]
+
+    # list of current neighbor cells
+    #neig = [(1, 2), (3, 4), (5, 6), (7, 8)]
+
+    # list of lengths of BFS from curr neighbor cells to Button
+    neighborP = []
+    neiBFS = []
+
+    neig = []
+    x,y = bot_pos
+    neig.extend(get_neighbors_bot4(bot_4_grid, x, y))
+
+    print(neig)
+    for x, y in neig:
+        nei_pos = (x, y)
+        path = find_shortest_path(bot_4_grid, 2, current_fire_cell, neighborP, nei_pos, button_pos)
+        if path is None or path == []:
+            neiBFS.append(0)
+        else:
+            neiBFS.append(len(path))
+
+    # list of edge fire cells
+    # edgefire = [(2, 3), (1, 3), (4, 6)]
+
+    # distance between button and fire
+    # create new index for valid for BFS and ignore fire position
+    current_fire_cell = []
+    minfire = 999999
+    for x, y in edgefire:
+        fire_pos = (x, y)
+        path = find_shortest_path(bot_4_grid, 2, current_fire_cell, neighborP, fire_pos, button_pos)
+        if minfire > len(path):
+            minfire = len(path)
+
+    # Calculating risk factor for each neighbor cell
+    risk_factor = []
+    for i in range(len(prob)):
+        risk_factor.append(prob[i]*(neiBFS[i]**2))
+
+    # Now we have risk factor, neiBFS, and minfire. we return neigh[i] which we want to move to
+    # max = max(neiBFS)
+    minl = min(neiBFS)
+
+    if (1/3)*minfire < minl:
+        print("maximum")
+        res = 9999
+        rf = 0
+        index = 0
+        for x in range(len(prob)):
+            if risk_factor[x] != 0 and neiBFS[x] < res or (neiBFS[x] == res and rf < risk_factor[x]):
+                res = neiBFS[x]
+                index = x
+                rf = risk_factor[x]
+        return neig[index]
+    else:
+        print("minimum")
+        rf = 9999
+        index = 0
+        for x in range(len(prob)):
+            if risk_factor[x] !=0 and rf > risk_factor[x]:
+                rf = risk_factor[x]
+                index = x
+        return neig[index]
+
+
+def prob_for_cell(originalGrid, bot_pos):
 
     temp_grid = [row.copy() for row in originalGrid]
-    
+
     # Step 1: Get all the fire cells of the originalGrid
     fire_cells = [(i, j) for i in range(D) for j in range(D) if temp_grid[i][j] == "F"]
 
@@ -334,64 +514,98 @@ def prob_for_cell(originalGrid):
                     temp_grid[x][y] = "F"
 
     # Step 5: return prob_for_cell
-    return prob_for_cell
+    neighbors = get_neighbors_bot4(originalGrid, bot_pos[0], bot_pos[1])
+    neighbor_prob_list = []
+    for neighbor in neighbors:
+        neighbor_prob_list.append(prob_for_cell[neighbor[0]][neighbor[1]])
+
+    return neighbor_prob_list
 
 
-# Spread Fire and Store the path Value:
-def start_fire():
-    time = 1
-    tempGrid = [row.copy() for row in grid]
+def task_bot4():
+    time  = 0
+    button_pos = (x_button, y_button)
+    bot_pos = (x_bot, y_bot)
+
+    print("bot pos", bot_pos)
+    bot_4_grid = [row.copy() for row in grid]
+    FirePath = list(path_for_fire.values())
+    currentNeighbor = list(neighbors_for_fire.values())
+    probabilityCell = list(probility_for_bot4.values())
+    current_fire_cell = [(x_fire, y_fire)]
+
+    print()
+    for x in bot_4_grid:
+        print(' '.join(x))
+    print()
+
+    neighbor = currentNeighbor[0]
+    prob = probabilityCell[0]
+
     while True:
-        tempGrid = fire(tempGrid, time)
-        if tempGrid is None:
+
+        for x in bot_4_grid:
+            print(' '.join(x))
+        print()
+
+        # Huzaif - Probability Queue
+        # probability_bot_4 = prob_for_cell(bot_4_grid,bot_pos)
+
+        # Kush - Probability Queue
+        probability_bot_4 = estimate_probability(bot_4_grid, bot_pos, prob)
+
+        edge_fire_cell = outer_fire_cells(bot_4_grid)
+
+        x,y = heuristic_bot4(bot_4_grid,bot_pos,current_fire_cell,probability_bot_4,edge_fire_cell)
+        print("x,y", (x,y))
+
+
+        bot_pos = (x,y)
+        bot_4_grid[x][y] = "P"
+
+        if len(FirePath) == 0:
+            print("Fire reached to Button. Bot 4 Loss")
             break
-        time += 1
+        f4 = FirePath[0]
+        if (x_button, y_button) == bot_pos:
+            print("Bot reached Button. Bot 4 Won")
+            break
+
+        next_fire_cell = f4
+
+        for i, j in next_fire_cell:
+            bot_4_grid[i][j] = "F"
+            current_fire_cell.append((i, j))
+            list(set(current_fire_cell))
+
+        FirePath.pop(0)
+
+        if bot_pos in current_fire_cell:
+            print("Fire Caught Bot 4 ")
+            break
+
+        # if len(currentNeighbor) != 0:
+        #     neighbor = currentNeighbor.pop(0)
+
+        if len(probabilityCell) != 0:
+            prob = probabilityCell.pop(0)
+
+        time+=1
+
+    print(time)
 
 
-# Ignition to Fire
-start_fire()
-
-result = list(path_for_fire.values())
-for i, group in enumerate(result):
-    print(f"Group {i}: {group}")
-print()
-print()
-result = list(neighbors_for_fire.values())
-for i, group in enumerate(result):
-    print(f"Group {i}: {group}")
-print()
-result = list(probility_for_bot4.values())
-for i, group in enumerate(result):
-    print(f"Group {i}: {group}")
-###############################################################
-'''
-                        BOT - 1 
-'''
+task_bot4()
 
 
-###############################################################
-
-
-def find_shortest_path(original_grid, index, fireP, neighborP,  start, end):
-    queue = deque([(start, [])])
-    visited = set()
-    while queue:
-        (x, y), path = queue.popleft()
-        if (x, y) == end:
-            return path
-        if (x, y) not in visited:
-            visited.add((x, y))
-            # print(visited)
-            for nx, ny in get_neighbors(x, y):
-                if is_valid_move_bot(original_grid, index, fireP,neighborP, nx, ny):
-                    queue.append(((nx, ny), path + [(nx, ny)]))
-    return None
 
 
 def task():
     time = 0
+
     button_pos = (x_button, y_button)
     bot_pos = (x_bot, y_bot)
+
     print("bot pos", bot_pos)
     bot_1_grid = [row.copy() for row in grid]
     bot_2_grid = [row.copy() for row in grid]
@@ -405,13 +619,14 @@ def task():
     initialFireCell = [(x_fire, y_fire)]
     neighborP = initialFireCell
     path = find_shortest_path(bot_1_grid, 1, initialFireCell, neighborP, bot_pos, button_pos)
-    print("Main Path", path)
+    # print("Main Path", path)
     p1 = bot_pos
     # For Bot 1
+
     while True:
-        for x in bot_1_grid:
-            print(' '.join(x))
-        print()
+        # for x in bot_1_grid:
+        #     print(' '.join(x))
+        # print()
         # print(time)
         # print("p",path)
         if time > 0:
@@ -425,7 +640,7 @@ def task():
         bot_pos = p1
         t, k = bot_pos
         # print(bot_pos)
-        bot_1_grid[t][k] = "P"
+        # bot_1_grid[t][k] = "P"
         # print("Curr pos", bot_pos)
 
         if (x_button, y_button) == p1:
@@ -516,10 +731,11 @@ def task():
     # print("p3=", p3)
 
     while True:
+
         # for x in bot_3_grid:
         #     print(' '.join(x))
         # print()
-        # print(time)
+        #print(time)
         # Initialize the path from time = 1
         # At time t = 0 initialize the bot as per instruction
         # print(bot_pos)
@@ -528,11 +744,11 @@ def task():
         if time > 0:
             path3 = find_shortest_path(bot_3_grid, 3, current_fire_cell, neighbor, bot_pos, button_pos)
 
-            # print("O==", path3)
+            #print("O==", path3)
             # print("p2", path2)
             if path3 is None or path3 == []:
                 path3 = find_shortest_path(bot_3_grid, 2, current_fire_cell, neighbor, bot_pos, button_pos)
-                # print("N==", path3)
+                #print("N==", path3)
                 if path3 is None or path3 == []:
                     print("No path exist for bot 3")
                     break
@@ -567,13 +783,18 @@ def task():
             break
         if len(neighborP) != 0:
             neighbor = neighborP.pop(0)
-            #print("Neighbor",neighbor)
+            # print("Neighbor",neighbor)
         else:
             break
         time += 1
     print(time)
 
-task()
+
+
+
+
+
+#task()
 
 # for x in grid:
 #     print(' '.join(x))
