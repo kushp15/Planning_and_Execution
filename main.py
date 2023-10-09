@@ -9,7 +9,7 @@ from collections import deque
 # Fire - F
 
 D = 20
-q = 0.6
+q = 0.2
 grid = [["#" for _ in range(D)] for _ in range(D)]
 openBlockPosArr = []
 deadEndCells = []
@@ -390,6 +390,7 @@ def estimate_probability(originalgrid, bot_pos, probability_of_neighbor):
 '''
 ###############################################################
 
+# path = find_shortest_path(bot_4_grid, 2, current_fire_cell, neighborP, fire_pos, button_pos)
 
 def find_shortest_path(original_grid, index, fireP, neighborP, start, end):
     queue = deque([(start, [])])
@@ -410,13 +411,7 @@ def find_shortest_path(original_grid, index, fireP, neighborP, start, end):
     return None
 
 def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire):
-    # list of prob
-    # prob = [0.5, 0.8, 0.6, 0.8]
 
-    # list of current neighbor cells
-    #neig = [(1, 2), (3, 4), (5, 6), (7, 8)]
-
-    # list of lengths of BFS from curr neighbor cells to Button
     neighborP = []
     neiBFS = []
 
@@ -424,7 +419,10 @@ def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire):
     x,y = bot_pos
     neig.extend(get_neighbors_bot4(bot_4_grid, x, y))
 
-    print(neig)
+    print("neighbors of bot 4", neig)
+    print("Its Fire Cell", current_fire_cell)
+    print("Its edge", edgefire)
+
     for x, y in neig:
         nei_pos = (x, y)
         path = find_shortest_path(bot_4_grid, 2, current_fire_cell, neighborP, nei_pos, button_pos)
@@ -432,9 +430,10 @@ def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire):
             neiBFS.append(0)
         else:
             neiBFS.append(len(path))
+        if len(path) == 0 and bot_4_grid[x][y] == "B":
+            return (x,y)
 
-    # list of edge fire cells
-    # edgefire = [(2, 3), (1, 3), (4, 6)]
+    print("Path from player neighbor to button",neiBFS)
 
     # distance between button and fire
     # create new index for valid for BFS and ignore fire position
@@ -445,15 +444,17 @@ def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire):
         path = find_shortest_path(bot_4_grid, 2, current_fire_cell, neighborP, fire_pos, button_pos)
         if minfire > len(path):
             minfire = len(path)
-
+    print("Path from fire to button", minfire)
     # Calculating risk factor for each neighbor cell
     risk_factor = []
     for i in range(len(prob)):
-        risk_factor.append(prob[i]*(neiBFS[i]**2))
+        risk_factor.append(prob[i]*(neiBFS[i]))
 
     # Now we have risk factor, neiBFS, and minfire. we return neigh[i] which we want to move to
     # max = max(neiBFS)
     minl = min(neiBFS)
+
+    # If one of the len of nei == 0 && nei == Button then go to Button
 
     if (1/3)*minfire < minl:
         print("maximum")
@@ -549,11 +550,11 @@ def task_bot4():
         print()
 
         # Huzaif - Probability Queue
-        # probability_bot_4 = prob_for_cell(bot_4_grid,bot_pos)
-
+        probability_bot_4 = prob_for_cell(bot_4_grid,bot_pos)
+        print('hu',probability_bot_4)
         # Kush - Probability Queue
         probability_bot_4 = estimate_probability(bot_4_grid, bot_pos, prob)
-
+        print('ku',probability_bot_4)
         edge_fire_cell = outer_fire_cells(bot_4_grid)
 
         x,y = heuristic_bot4(bot_4_grid,bot_pos,current_fire_cell,probability_bot_4,edge_fire_cell)
@@ -789,12 +790,7 @@ def task():
         time += 1
     print(time)
 
-
-
-
-
-
-#task()
+task()
 
 # for x in grid:
 #     print(' '.join(x))
