@@ -10,103 +10,125 @@ from collections import deque
 
 D = 20
 q = 0.2
-grid = [["#" for _ in range(D)] for _ in range(D)]
-openBlockPosArr = []
-deadEndCells = []
-openGrid = []
+# grid = [["#" for _ in range(D)] for _ in range(D)]
+# openBlockPosArr = []
+# deadEndCells = []
+# openGrid = []
+#
+# randIntX = random.randint(1, D - 2)
+# randIntY = random.randint(1, D - 2)
+# grid[randIntX][randIntY] = "O"
+# openBlockPosArr.append((randIntX, randIntY))
+#
+# effX1 = randIntX - 1
+# effX2 = randIntX + 1
+# effY1 = randIntY - 1
+# effY2 = randIntY + 1
+#
+# # debug info
+# # print("picked: " + "(" + str(randIntX) + ", " + str(randIntY) + ")")
+#
+# while openBlockPosArr:
+#     openBlockPosArr = []
+#     for x in range(effX1, effX2 + 1):
+#         for y in range(effY1, effY2 + 1):
+#             openBlockPos = 0
+#             if grid[x][y] == "#":
+#                 a = x + 1
+#                 b = x - 1
+#                 c = y + 1
+#                 d = y - 1
+#                 if a <= effX2 and grid[a][y] == "O":
+#                     openBlockPos += 1
+#                 if b >= effX1 and grid[b][y] == "O":
+#                     openBlockPos += 1
+#                 if c <= effY2 and grid[x][c] == "O":
+#                     openBlockPos += 1
+#                 if d >= effY1 and grid[x][d] == "O":
+#                     openBlockPos += 1
+#                 if openBlockPos == 1:
+#                     openBlockPosArr.append((x, y))
+#     if openBlockPosArr:
+#
+#         # debug info
+#         # print()
+#         # print(openBlockPosArr)
+#         # print()
+#
+#         randIndex = random.randint(0, len(openBlockPosArr) - 1)
+#         randIntX, randIntY = openBlockPosArr[randIndex]
+#         grid[randIntX][randIntY] = "O"
+#
+#         if 0 < effX1 == randIntX:
+#             effX1 = randIntX - 1
+#         if D - 1 > effX2 == randIntX:
+#             effX2 = randIntX + 1
+#         if 0 < effY1 == randIntY:
+#             effY1 = randIntY - 1
+#         if D - 1 > effY2 == randIntY:
+#             effY2 = randIntY + 1
+#
+#         # debug info
+#         # print()
+#         # for x in grid:
+#         #     print(' '.join(x))
+#         # print()
+#
+# for x in range(D):
+#     for y in range(D):
+#         deadEndBlock = 0
+#         deadEndBlockArr = []
+#         if grid[x][y] == "O":
+#             a = x + 1
+#             b = x - 1
+#             c = y + 1
+#             d = y - 1
+#             if 0 <= a <= D - 1 and grid[a][y] == "#":
+#                 deadEndBlock += 1
+#                 deadEndBlockArr.append((a, y))
+#             if 0 <= b <= D - 1 and grid[b][y] == "#":
+#                 deadEndBlock += 1
+#                 deadEndBlockArr.append((b, y))
+#             if 0 <= c <= D - 1 and grid[x][c] == "#":
+#                 deadEndBlock += 1
+#                 deadEndBlockArr.append((x, c))
+#             if 0 <= d <= D - 1 and grid[x][d] == "#":
+#                 deadEndBlock += 1
+#                 deadEndBlockArr.append((x, d))
+#             if deadEndBlock >= 3:
+#                 randIndex = random.randint(0, len(deadEndBlockArr) - 1)
+#                 randIntX, randIntY = deadEndBlockArr[randIndex]
+#                 deadEndCells.append(
+#                     (randIntX, randIntY))  # for each dead end pick a coordinate to open at random and store in list
+#
+# # shuffle the list and open 50% of the dead end cells
+# random.shuffle(deadEndCells)  # [(8, 4), (9, 5), (3, 7)]
+# print("deadendsCells", deadEndCells)
+# for i in range(int(len(deadEndCells) / 2)):
+#     x, y = deadEndCells[i]
+#     grid[x][y] = "O"
 
-randIntX = random.randint(1, D - 2)
-randIntY = random.randint(1, D - 2)
-grid[randIntX][randIntY] = "O"
-openBlockPosArr.append((randIntX, randIntY))
+grid = [['#', 'O', '#', 'O', '#', '#', 'O', '#', 'O', 'O', 'O', 'O', 'O', 'O', '#', 'O', '#', 'O', '#', 'O'],
+['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', '#', 'O', 'O', '#', '#', 'O', 'O', 'O', '#', 'O', '#', 'O'],
+['O', '#', '#', 'O', '#', 'O', '#', 'O', 'O', 'O', '#', '#', 'O', 'O', '#', '#', 'O', 'O', 'B', 'O'],
+['#', 'O', 'O', '#', 'O', '#', 'P', 'O', '#', 'O', '#', 'O', 'O', 'O', '#', 'O', 'O', '#', 'O', '#'],
+['O', '#', 'O', '#', 'O', 'O', 'O', '#', 'O', 'O', 'O', 'O', 'O', 'O', 'O', '#', 'O', '#', '#', 'O'],
+['O', 'O', 'O', 'O', '#', 'O', 'O', 'F', 'O', '#', 'O', 'O', 'O', 'O', 'O', '#', 'O', 'O', 'O', 'O'],
+['#', '#', 'O', '#', 'O', 'O', 'O', 'O', '#', '#', 'O', 'O', 'O', 'O', 'O', '#', 'O', '#', '#', 'O'],
+['O', 'O', 'O', 'O', 'O', '#', 'O', 'O', 'O', 'O', 'O', '#', 'O', '#', 'O', 'O', 'O', 'O', 'O', '#'],
+['O', '#', 'O', '#', 'O', 'O', 'O', 'O', 'O', '#', '#', 'O', 'O', 'O', '#', '#', 'O', '#', '#', 'O'],
+['#', 'O', 'O', 'O', '#', 'O', '#', 'O', '#', 'O', 'O', 'O', 'O', '#', '#', 'O', 'O', 'O', '#', 'O'],
+['O', 'O', 'O', 'O', 'O', 'O', '#', 'O', 'O', '#', 'O', '#', 'O', '#', 'O', 'O', '#', '#', 'O', 'O'],
+['#', '#', 'O', '#', '#', 'O', 'O', '#', 'O', '#', 'O', '#', 'O', 'O', 'O', 'O', 'O', '#', 'O', '#'],
+['O', 'O', 'O', '#', 'O', '#', 'O', 'O', 'O', '#', 'O', '#', 'O', '#', 'O', '#', 'O', 'O', 'O', 'O'],
+['O', 'O', '#', 'O', 'O', 'O', 'O', '#', 'O', 'O', 'O', 'O', 'O', '#', 'O', 'O', 'O', '#', '#', 'O'],
+['O', '#', 'O', '#', 'O', '#', '#', 'O', '#', '#', '#', '#', 'O', 'O', '#', 'O', '#', 'O', '#', 'O'],
+['O', 'O', 'O', 'O', '#', 'O', 'O', 'O', 'O', 'O', 'O', '#', '#', 'O', 'O', 'O', 'O', 'O', 'O', '#'],
+['#', '#', 'O', '#', 'O', 'O', '#', '#', 'O', '#', 'O', 'O', 'O', 'O', '#', 'O', '#', '#', 'O', 'O'],
+['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', '#', 'O', '#', 'O', 'O', 'O', 'O', '#', '#', 'O'],
+['#', 'O', '#', 'O', 'O', '#', 'O', '#', '#', 'O', 'O', 'O', '#', 'O', 'O', '#', 'O', 'O', 'O', 'O'],
+['O', 'O', 'O', '#', 'O', 'O', 'O', 'O', 'O', '#', '#', 'O', 'O', '#', 'O', '#', 'O', '#', '#', 'O']]
 
-effX1 = randIntX - 1
-effX2 = randIntX + 1
-effY1 = randIntY - 1
-effY2 = randIntY + 1
-
-# debug info
-# print("picked: " + "(" + str(randIntX) + ", " + str(randIntY) + ")")
-
-while openBlockPosArr:
-    openBlockPosArr = []
-    for x in range(effX1, effX2 + 1):
-        for y in range(effY1, effY2 + 1):
-            openBlockPos = 0
-            if grid[x][y] == "#":
-                a = x + 1
-                b = x - 1
-                c = y + 1
-                d = y - 1
-                if a <= effX2 and grid[a][y] == "O":
-                    openBlockPos += 1
-                if b >= effX1 and grid[b][y] == "O":
-                    openBlockPos += 1
-                if c <= effY2 and grid[x][c] == "O":
-                    openBlockPos += 1
-                if d >= effY1 and grid[x][d] == "O":
-                    openBlockPos += 1
-                if openBlockPos == 1:
-                    openBlockPosArr.append((x, y))
-    if openBlockPosArr:
-
-        # debug info
-        # print()
-        # print(openBlockPosArr)
-        # print()
-
-        randIndex = random.randint(0, len(openBlockPosArr) - 1)
-        randIntX, randIntY = openBlockPosArr[randIndex]
-        grid[randIntX][randIntY] = "O"
-
-        if 0 < effX1 == randIntX:
-            effX1 = randIntX - 1
-        if D - 1 > effX2 == randIntX:
-            effX2 = randIntX + 1
-        if 0 < effY1 == randIntY:
-            effY1 = randIntY - 1
-        if D - 1 > effY2 == randIntY:
-            effY2 = randIntY + 1
-
-        # debug info
-        # print()
-        # for x in grid:
-        #     print(' '.join(x))
-        # print()
-
-for x in range(D):
-    for y in range(D):
-        deadEndBlock = 0
-        deadEndBlockArr = []
-        if grid[x][y] == "O":
-            a = x + 1
-            b = x - 1
-            c = y + 1
-            d = y - 1
-            if 0 <= a <= D - 1 and grid[a][y] == "#":
-                deadEndBlock += 1
-                deadEndBlockArr.append((a, y))
-            if 0 <= b <= D - 1 and grid[b][y] == "#":
-                deadEndBlock += 1
-                deadEndBlockArr.append((b, y))
-            if 0 <= c <= D - 1 and grid[x][c] == "#":
-                deadEndBlock += 1
-                deadEndBlockArr.append((x, c))
-            if 0 <= d <= D - 1 and grid[x][d] == "#":
-                deadEndBlock += 1
-                deadEndBlockArr.append((x, d))
-            if deadEndBlock >= 3:
-                randIndex = random.randint(0, len(deadEndBlockArr) - 1)
-                randIntX, randIntY = deadEndBlockArr[randIndex]
-                deadEndCells.append(
-                    (randIntX, randIntY))  # for each dead end pick a coordinate to open at random and store in list
-
-# shuffle the list and open 50% of the dead end cells
-random.shuffle(deadEndCells)  # [(8, 4), (9, 5), (3, 7)]
-print("deadendsCells", deadEndCells)
-for i in range(int(len(deadEndCells) / 2)):
-    x, y = deadEndCells[i]
-    grid[x][y] = "O"
 
 ####################################################
 '''
@@ -115,78 +137,66 @@ for i in range(int(len(deadEndCells) / 2)):
 ####################################################
 
 # Appending Open Cell to OpenGrid List
-for x in range(D):
-    for y in range(D):
-        if grid[x][y] == "O":
-            openGrid.append((x, y))
+# for x in range(D):
+#     for y in range(D):
+#         if grid[x][y] == "O":
+#             openGrid.append((x, y))
 
-
-# Find the Position for the Bot Cell
-def bot_open_start_position():
-    position = random.randint(0, len(openGrid) - 1)
-    a, b = openGrid[position]
-    openGrid.pop(position)
-    grid[a][b] = "P"
-    # print(a, b, position, grid[a][b], len(queue))
-    return a, b
-
-
-# Initialize Bot
-x_bot, y_bot = bot_open_start_position()
-bot_pos = (x_bot, y_bot)
-
-
-# Find the Position for The Fire Cell
-def fire_open_start_position():
-    position = random.randint(0, len(openGrid) - 1)
-    a, b = openGrid[position]
-    openGrid.pop(position)
-    grid[a][b] = "F"
-    print((a, b))
-    # grid[a][b + 1] = "F"
-    # grid[a+1][b] = "F"
-    # print(a, b, position, grid[a][b], len(queue))
-    return a, b
-
-
-# Initialize Fire
-x_fire, y_fire = fire_open_start_position()
-fire_pos = (x_fire, y_fire)
-
-
-# Find the Position for The Button Cell
-def button_open_position():
-    position = random.randint(0, len(openGrid) - 1)
-    a, b = openGrid[position]
-    openGrid.pop(position)
-    grid[a][b] = "B"
-    # print(a, b, position, grid[a][b], len(queue))
-    return a, b
-
-
-# Initialize Button
-x_button, y_button = button_open_position()
-button_pos = (x_button, y_button)
-
-# grid = [
-#     ["O", "O", "#", "O", "P", "O", "#", "#", "O", "O"],
-#     ["#", "O", "O", "#", "#", "O", "O", "#", "O", "O"],
-#     ["O", "O", "O", "#", "#", "O", "#", "O", "O", "O"],
-#     ["#", "O", "O", "#", "O", "O", "O", "O", "O", "O"],
-#     ["O", "O", "F", "O", "#", "O", "#", "#", "O", "O"],
-#     ["#", "O", "O", "O", "O", "O", "O", "#", "O", "O"],
-#     ["#", "O", "#", "O", "#", "O", "#", "O", "O", "O"],
-#     ["O", "O", "#", "#", "O", "O", "O", "O", "O", "#"],
-#     ["#", "#", "O", "#", "#", "B", "#", "O", "O", "#"],
-#     ["O", "O", "O", "O", "O", "O", "O", "#", "O", "O"]
-# ]
 #
-# bot_pos = (0,4)
-# x_bot, y_bot = bot_pos
-# button_pos = (8,5)
-# x_button, y_button = button_pos
-# fire_pos = (4,2)
-# x_fire, y_fire = fire_pos
+# # Find the Position for the Bot Cell
+# def bot_open_start_position():
+#     position = random.randint(0, len(openGrid) - 1)
+#     a, b = openGrid[position]
+#     openGrid.pop(position)
+#     grid[a][b] = "P"
+#     # print(a, b, position, grid[a][b], len(queue))
+#     return a, b
+#
+#
+# # Initialize Bot
+# x_bot, y_bot = bot_open_start_position()
+# bot_pos = (x_bot, y_bot)
+#
+#
+# # Find the Position for The Fire Cell
+# def fire_open_start_position():
+#     position = random.randint(0, len(openGrid) - 1)
+#     a, b = openGrid[position]
+#     openGrid.pop(position)
+#     grid[a][b] = "F"
+#     print((a, b))
+#     # grid[a][b + 1] = "F"
+#     # grid[a+1][b] = "F"
+#     # print(a, b, position, grid[a][b], len(queue))
+#     return a, b
+#
+#
+# # Initialize Fire
+# x_fire, y_fire = fire_open_start_position()
+# fire_pos = (x_fire, y_fire)
+#
+#
+# # Find the Position for The Button Cell
+# def button_open_position():
+#     position = random.randint(0, len(openGrid) - 1)
+#     a, b = openGrid[position]
+#     openGrid.pop(position)
+#     grid[a][b] = "B"
+#     # print(a, b, position, grid[a][b], len(queue))
+#     return a, b
+#
+#
+# # Initialize Button
+# x_button, y_button = button_open_position()
+# button_pos = (x_button, y_button)
+
+
+bot_pos = (3,6)
+x_bot, y_bot = bot_pos
+button_pos = (2,18)
+x_button, y_button = button_pos
+fire_pos = (5,7)
+x_fire, y_fire = fire_pos
 
 ###############################################################
 '''
@@ -410,7 +420,7 @@ def find_shortest_path(original_grid, index, fireP, neighborP, start, end):
             visited_dfs.remove((x, y))
     return None
 
-def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire):
+def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire, fireNeighbor):
 
     neighborP = []
     neiBFS = []
@@ -424,14 +434,16 @@ def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire):
     print("Its edge", edgefire)
 
     for x, y in neig:
+
         nei_pos = (x, y)
-        path = find_shortest_path(bot_4_grid, 2, current_fire_cell, neighborP, nei_pos, button_pos)
+        path = find_shortest_path(bot_4_grid, 3, current_fire_cell, fireNeighbor , nei_pos, button_pos)
         if path is None or path == []:
-            neiBFS.append(0)
+            if bot_4_grid[x][y] == "B":
+                return (x,y)
+            neiBFS.append(1)
         else:
             neiBFS.append(len(path))
-        if len(path) == 0 and bot_4_grid[x][y] == "B":
-            return (x,y)
+
 
     print("Path from player neighbor to button",neiBFS)
 
@@ -445,24 +457,35 @@ def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire):
         if minfire > len(path):
             minfire = len(path)
     print("Path from fire to button", minfire)
+
+    # dist from fire to player
+    minFP = 999999
+    for x, y in edgefire:
+        fire_pos = (x, y)
+        path = find_shortest_path(bot_4_grid, 2, current_fire_cell, neighborP, fire_pos, bot_pos)
+        if minFP > len(path):
+            minFP = len(path)
+    print("Path from fire to player", minFP)
+
+    # dist from player to button
+    path = find_shortest_path(bot_4_grid, 2, current_fire_cell, neighborP, bot_pos, button_pos)
+    currentPB = len(path)
+
     # Calculating risk factor for each neighbor cell
     risk_factor = []
+    minl = 999
     for i in range(len(prob)):
         risk_factor.append(prob[i]*(neiBFS[i]))
 
-    # Now we have risk factor, neiBFS, and minfire. we return neigh[i] which we want to move to
-    # max = max(neiBFS)
     minl = min(neiBFS)
 
-    # If one of the len of nei == 0 && nei == Button then go to Button
-
-    if (1/3)*minfire < minl:
+    if minfire < minl:
         print("maximum")
         res = 9999
         rf = 0
         index = 0
         for x in range(len(prob)):
-            if risk_factor[x] != 0 and neiBFS[x] < res or (neiBFS[x] == res and rf < risk_factor[x]):
+            if risk_factor[x] != 0 and ((neiBFS[x] < res and rf/res < prob[x]) or (neiBFS[x] == res and rf > risk_factor[x])):
                 res = neiBFS[x]
                 index = x
                 rf = risk_factor[x]
@@ -476,6 +499,17 @@ def heuristic_bot4(bot_4_grid, bot_pos, current_fire_cell, prob, edgefire):
                 rf = risk_factor[x]
                 index = x
         return neig[index]
+
+
+
+
+
+
+
+
+
+
+
 
 
 def prob_for_cell(originalGrid, bot_pos):
@@ -557,7 +591,7 @@ def task_bot4():
         print('ku',probability_bot_4)
         edge_fire_cell = outer_fire_cells(bot_4_grid)
 
-        x,y = heuristic_bot4(bot_4_grid,bot_pos,current_fire_cell,probability_bot_4,edge_fire_cell)
+        x,y = heuristic_bot4(bot_4_grid,bot_pos,current_fire_cell,probability_bot_4,edge_fire_cell, neighbor)
         print("x,y", (x,y))
 
 
@@ -580,7 +614,7 @@ def task_bot4():
             list(set(current_fire_cell))
 
         FirePath.pop(0)
-
+        neighbor = currentNeighbor.pop(0)
         if bot_pos in current_fire_cell:
             print("Fire Caught Bot 4 ")
             break
@@ -789,6 +823,11 @@ def task():
             break
         time += 1
     print(time)
+
+
+
+
+
 
 task()
 
