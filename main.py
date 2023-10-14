@@ -395,6 +395,7 @@ def Project_1_main(D, q):
                 0 <= nx < D and 0 <= ny < D and (grid[nx][ny] != "🟫" and grid[nx][ny] != "🔥")]
 
 
+
     # Created a task for Bot - 1, 2, 3
     def task():
         global bot1win, bot2win, bot3win
@@ -409,8 +410,8 @@ def Project_1_main(D, q):
 
         FirePath = list(path_for_fire.values())
 
-        # print("***********************************************************")
-        # print("Bot 1")
+        print("***********************************************************")
+        print("Bot 1")
         initialFireCell = [(x_fire, y_fire)]
         neighborP = initialFireCell
         path = find_shortest_path(bot_1_grid, 1, initialFireCell, neighborP, bot_pos, button_pos)
@@ -419,7 +420,7 @@ def Project_1_main(D, q):
         while True:
             if time > 0:
                 if path is None or path == []:
-                    # print("No path exist for bot 1")
+                    print("No path exist for bot 1")
                     break
                 else:
                     p1 = path[0]
@@ -428,12 +429,12 @@ def Project_1_main(D, q):
             bot_pos = p1
             t, k = bot_pos
             if (x_button, y_button) == p1:
-                # print("Bot reached Button. Bot 1 Won")
+                print("Bot reached Button. Bot 1 Won")
                 bot1win +=1
                 break
             bot_1_grid[t][k] = "🤖"
             if len(FirePath) == 0:
-                # print("Fire reached to Button. Bot 1 Loss")
+                print("Fire reached to Button. Bot 1 Loss")
                 break
 
             next_fire_cell = FirePath[0]
@@ -443,21 +444,21 @@ def Project_1_main(D, q):
                 initialFireCell.append((i, j))
 
             if p1 in initialFireCell:
-                # print("Fire Caught Bot 1 ")
+                print("Fire Caught Bot 1 ")
                 break
 
             FirePath.pop(0)
             time += 1
-        # for x in bot_1_grid:
-        #     print(' '.join(x))
-        # print()
-        # print("***********************************************************")
-        #
-        #
-        # print()
-        #
-        # print("***********************************************************")
-        # print("Bot 2")
+        for x in bot_1_grid:
+            print(' '.join(x))
+        print()
+        print("***********************************************************")
+
+
+        print()
+
+        print("***********************************************************")
+        print("Bot 2")
         neighborP = initialFireCell
 
         time = 0
@@ -469,13 +470,13 @@ def Project_1_main(D, q):
             if time > 0:
                 path2 = find_shortest_path(bot_2_grid, 2, current_fire_cell, neighborP, bot_pos, button_pos)
                 if path2 is None or path2 == []:
-                    # print("No path exist for bot 2")
+                    print("No path exist for bot 2")
                     break
                 else:
                     p2 = path2[0]
                 path2.pop(0)
             if (x_button, y_button) == p2:
-                # print("Bot reached Button. Bot 2 Won")
+                print("Bot reached Button. Bot 2 Won")
                 bot2win += 1
                 break
 
@@ -484,7 +485,7 @@ def Project_1_main(D, q):
             bot_2_grid[t][k] = "🤖"
 
             if len(FirePath) == 0:
-                # print("Fire reached to Button. Bot 2 Loss")
+                print("Fire reached to Button. Bot 2 Loss")
                 break
             f2 = FirePath[0]
             next_fire_cell = f2
@@ -493,20 +494,20 @@ def Project_1_main(D, q):
                 bot_2_grid[i][j] = "🔥"
                 current_fire_cell.append((i, j))
             if p2 in current_fire_cell:
-                # print("Fire Caught Bot 2 ")
+                print("Fire Caught Bot 2 ")
                 break
             FirePath.pop(0)
             time += 1
 
-        # for x in bot_2_grid:
-        #     print(' '.join(x))
-        # print()
-        # print("***********************************************************")
-        #
-        # print()
-        #
-        # print("***********************************************************")
-        # print("Bot 3")
+        for x in bot_2_grid:
+            print(' '.join(x))
+        print()
+        print("***********************************************************")
+
+        print()
+
+        print("***********************************************************")
+        print("Bot 3")
         time = 0
         FirePath = list(path_for_fire.values())
         neighborP = list(neighbors_for_fire.values())
@@ -520,14 +521,14 @@ def Project_1_main(D, q):
                 if path3 is None or path3 == []:
                     path3 = find_shortest_path(bot_3_grid, 2, current_fire_cell, neighbor, bot_pos, button_pos)
                     if path3 is None or path3 == []:
-                        # print("No path exist for bot 3")
+                        print("No path exist for bot 3")
                         break
                 if path3 is not None or path3 != []:
                     p3 = path3[0]
                 path3.pop(0)
 
             if (x_button, y_button) == p3:
-                # print("Bot reached Button. Bot 3 Won")
+                print("Bot reached Button. Bot 3 Won")
                 bot3win +=1
                 break
 
@@ -543,27 +544,27 @@ def Project_1_main(D, q):
                 current_fire_cell.append((i, j))
                 list(set(current_fire_cell))
             if p3 in current_fire_cell:
-                # print("Fire Caught Bot 3 ")
+                print("Fire Caught Bot 3 ")
                 break
 
             FirePath.pop(0)
             if len(FirePath) == 0:
-                # print("Fire reached to Button. Bot 3 Loss")
+                print("Fire reached to Button. Bot 3 Loss")
                 break
             if len(neighborP) != 0:
                 neighbor = neighborP.pop(0)
             else:
                 break
             time += 1
-        # for x in bot_3_grid:
-        #     print(' '.join(x))
-        # print()
-        # print("***********************************************************")
+        for x in bot_3_grid:
+            print(' '.join(x))
+        print()
+        print("***********************************************************")
 
     def task_4():
-        # print()
-        # print("***********************************************************")
-        # print("Bot 4")
+        print()
+        print("***********************************************************")
+        print("Bot 4")
         global bot4win
         bot_4_grid = [row.copy() for row in grid]
         FirePath = list(path_for_fire.values())
@@ -575,41 +576,48 @@ def Project_1_main(D, q):
                 bot_pos = path[0]
                 (x,y) = path[0]
                 if bot_pos == button_pos:
-                    # print("Bot reached Button. Bot 4 Won")
+                    print("Bot reached Button. Bot 4 Won")
                     bot4win+=1
                     break
                 bot_4_grid[x][y] = "🤖"
             else:
-                # print("No path exist for bot 4")
+                print("No path exist for bot 4")
                 break
 
             if len(FirePath) == 0:
-                # print("Fire reached to Button. Bot 4 Loss")
+                print("Fire reached to Button. Bot 4 Loss")
                 break
             f4 = FirePath[0]
             for i,j in f4:
                 bot_4_grid[i][j] = "🔥"
             if bot_pos in f4:
-                # print("Fire Caught Bot 4")
+                print("Fire Caught Bot 4")
                 break
             FirePath.pop(0)
             time += 1
-        # for x in bot_4_grid:
-        #     print(' '.join(x))
-        # print()
-        # print("***********************************************************")
-
-    task()
-    task_4()
+        for x in bot_4_grid:
+            print(' '.join(x))
+        print()
+        print("***********************************************************")
 
 
-# D = int(input(f"Enter the size for the grid          : "))
-# q = float(input("Enter the q value for Fire (0 - 1)   : "))
 
-# Project_1_main(D, q)
 
-for i in range(100):
-    Project_1_main(50, 0.54)
-    print(i," ",  bot1win ," " , bot2win," ",  bot3win," ",  bot4win)
-print("All Bot Ratio")
-print(bot1win  , bot2win, bot3win, bot4win)
+D = int(input(f"Enter the size for the grid          : "))
+while True:
+    q = float(input("Enter the q value for Fire (0 - 1)   : "))
+    if 0 < q <= 1:
+        break
+    else:
+        print("Enter the q value for Fire (0 - 1)   : ")
+
+
+Project_1_main(D, q)
+
+# If you want to run multiple times run below Program
+
+# for i in range(100):
+#     Project_1_main(50, 0.76)
+#     print(i," ",  bot1win ," " , bot2win," ",  bot3win," ",  bot4win)
+# print("All Bot Ratio")
+# print(bot1win  , bot2win, bot3win, bot4win)
