@@ -3,7 +3,6 @@ import random
 from collections import deque
 import heapq
 
-
 print("#####################################################")
 print(f"Block Cell      {'🟫':<2}")
 print(f"Open Cell       {'⬜':<2}")
@@ -16,7 +15,6 @@ bot2win = 0
 bot3win = 0
 bot4win = 0
 
-
 ##############################################################
 '''                   BUILD GRID LAYOUT                    '''
 ##############################################################
@@ -28,7 +26,6 @@ def Project_1_main(D, q):
 
     openBlockPosArr = []
     deadEndCells = []
-
 
     randIntX = random.randint(1, D - 2)
     randIntY = random.randint(1, D - 2)
@@ -108,14 +105,11 @@ def Project_1_main(D, q):
         x, y = deadEndCells[i]
         grid[x][y] = "⬜️"
 
-
-
     # Appending Open Cell to OpenGrid List
     for x in range(D):
         for y in range(D):
             if grid[x][y] == "⬜️":
                 openGrid.append((x, y))
-
 
     # Find the Position for the Bot Cell
     def bot_open_start_position():
@@ -125,11 +119,9 @@ def Project_1_main(D, q):
         grid[a][b] = "🤖"
         return a, b
 
-
     # Initialize Bot
     x_bot, y_bot = bot_open_start_position()
     bot_pos = (x_bot, y_bot)
-
 
     # Find the Position for The Fire Cell
     def fire_open_start_position():
@@ -139,11 +131,9 @@ def Project_1_main(D, q):
         grid[a][b] = "🔥"
         return a, b
 
-
     # Initialize Fire
     x_fire, y_fire = fire_open_start_position()
     fire_pos = (x_fire, y_fire)
-
 
     # Find the Position for The Button Cell
     def button_open_position():
@@ -152,7 +142,6 @@ def Project_1_main(D, q):
         openGrid.pop(position)
         grid[a][b] = "🟩"
         return a, b
-
 
     # Initialize Button
     x_button, y_button = button_open_position()
@@ -173,15 +162,12 @@ def Project_1_main(D, q):
         count = [(nx, ny) for nx, ny in neighbors if 0 <= nx < D and 0 <= ny < D and grid[nx][ny] == "🔥"]
         return len(count)
 
-
     def get_neighbors(x, y):
         neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
         return [(nx, ny) for nx, ny in neighbors if 0 <= nx < D and 0 <= ny < D]
 
-
     def is_valid_move(grid, x, y):
         return 0 <= x < D and 0 <= y < D and grid[x][y] != "🟫" and grid[x][y] != "🔥"
-
 
     def is_valid_move_bot(grid, index, pathF, neighborFP, x, y):
         # if index == 1 then for Bot 1
@@ -192,19 +178,17 @@ def Project_1_main(D, q):
             return 0 <= x < D and 0 <= y < D and grid[x][y] != "🟫" and not ((x, y) in pathF)
         # if index == 2 then for Bot 3
         if index == 3:
-            return 0 <= x < D and 0 <= y < D and grid[x][y] != "🟫" and not ((x, y) in pathF) and not ((x, y) in neighborFP)
-
+            return 0 <= x < D and 0 <= y < D and grid[x][y] != "🟫" and not ((x, y) in pathF) and not (
+                        (x, y) in neighborFP)
 
     def calculate_fire_spread_probability(q, K):
         return 1 - (1 - q) ** K
-
 
     ###############################################################
     '''
                             FIRE
     '''
     ###############################################################
-
 
     path_for_fire = {}
     path_for_fire[0] = [(x_fire, y_fire)]
@@ -270,7 +254,6 @@ def Project_1_main(D, q):
         # print()
         return temp_grid
 
-
     # Starting Fire until Fire reach to Button.
     def start_fire():
         time = 1
@@ -282,10 +265,8 @@ def Project_1_main(D, q):
                 break
             time += 1
 
-
     # Ignition to Fire
     start_fire()
-
 
     # Helper Method for OutFire
     def is_outer_fire(grid, x, y):
@@ -298,16 +279,16 @@ def Project_1_main(D, q):
     # Method for Outer Fire
     def outer_fire_cells(originalGrid):
         outer_fire_cells = []
-        #1) Get all the fire cells of the originalGrid
+        # 1) Get all the fire cells of the originalGrid
         fire_cells = [(i, j) for i in range(D) for j in range(D) if originalGrid[i][j] == "🔥"]
-        for x,y in fire_cells:
+        for x, y in fire_cells:
             if is_outer_fire(originalGrid, x, y):
                 outer_fire_cells.append((x, y))
         return outer_fire_cells
 
-
     ###############################################################
     '''                 BFS Implementation                      '''
+
     ###############################################################
 
     # Custom BFS Implementation for Bot 1, 2, and 3
@@ -379,7 +360,8 @@ def Project_1_main(D, q):
                 tentative_reach_cost = reach_cost[current[0]][current[1]] + calculate_cost(neighbor)
 
                 if (
-                not any((y[0] == neighbor[0] and y[1] == neighbor[1]) for x, y in open_set)) or tentative_reach_cost < \
+                        not any((y[0] == neighbor[0] and y[1] == neighbor[1]) for x, y in
+                                open_set)) or tentative_reach_cost < \
                         reach_cost[neighbor[0]][neighbor[1]]:
                     reach_cost[neighbor[0]][neighbor[1]] = tentative_reach_cost
                     cost[neighbor[0]][neighbor[1]] = reach_cost[neighbor[0]][neighbor[1]] + heuristic(neighbor)
@@ -393,7 +375,6 @@ def Project_1_main(D, q):
         neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
         return [(nx, ny) for nx, ny in neighbors if
                 0 <= nx < D and 0 <= ny < D and (grid[nx][ny] != "🟫" and grid[nx][ny] != "🔥")]
-
 
 
     # Created a task for Bot - 1, 2, 3
@@ -430,7 +411,7 @@ def Project_1_main(D, q):
             t, k = bot_pos
             if (x_button, y_button) == p1:
                 print("Bot reached Button. Bot 1 Won")
-                bot1win +=1
+                bot1win += 1
                 break
             bot_1_grid[t][k] = "🤖"
             if len(FirePath) == 0:
@@ -453,7 +434,6 @@ def Project_1_main(D, q):
             print(' '.join(x))
         print()
         print("***********************************************************")
-
 
         print()
 
@@ -529,7 +509,7 @@ def Project_1_main(D, q):
 
             if (x_button, y_button) == p3:
                 print("Bot reached Button. Bot 3 Won")
-                bot3win +=1
+                bot3win += 1
                 break
 
             bot_pos = p3
@@ -569,15 +549,15 @@ def Project_1_main(D, q):
         bot_4_grid = [row.copy() for row in grid]
         FirePath = list(path_for_fire.values())
         time = 0
-        bot_pos = (x_bot,y_bot)
+        bot_pos = (x_bot, y_bot)
         while True:
             path = astar(bot_4_grid, bot_pos, button_pos)
             if path:
                 bot_pos = path[0]
-                (x,y) = path[0]
+                (x, y) = path[0]
                 if bot_pos == button_pos:
                     print("Bot reached Button. Bot 4 Won")
-                    bot4win+=1
+                    bot4win += 1
                     break
                 bot_4_grid[x][y] = "🤖"
             else:
@@ -588,7 +568,7 @@ def Project_1_main(D, q):
                 print("Fire reached to Button. Bot 4 Loss")
                 break
             f4 = FirePath[0]
-            for i,j in f4:
+            for i, j in f4:
                 bot_4_grid[i][j] = "🔥"
             if bot_pos in f4:
                 print("Fire Caught Bot 4")
@@ -600,8 +580,8 @@ def Project_1_main(D, q):
         print()
         print("***********************************************************")
 
-
-
+    task()
+    task_4()
 
 D = int(input(f"Enter the size for the grid          : "))
 while True:
@@ -610,7 +590,6 @@ while True:
         break
     else:
         print("Enter the q value for Fire (0 - 1)   : ")
-
 
 Project_1_main(D, q)
 
